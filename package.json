@@ -1,0 +1,20 @@
+{
+  "name": "word-net",
+  "source": "src/index.ts",
+  "main": "public/bundle.js",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "watch": "microbundle watch",
+    "build": "microbundle build"
+  },
+  "dependencies": {
+    "d3": "^5.16.0",
+    "node-sass": "^4.14.1",
+    "pack-spheres": "^1.0.4",
+    "xstate": "^4.10.0"
+  },
+  "devDependencies": {
+    "microbundle": "^0.12.2"
+  }
+}
