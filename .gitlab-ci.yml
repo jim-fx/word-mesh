@@ -1,4 +1,3 @@
-
 image: node:latest
 
 cache:
@@ -7,7 +6,7 @@ cache:
     
 pages:
     artifacts:
-        path:
+        paths:
             - public/dist
     script:
         - yarn install
