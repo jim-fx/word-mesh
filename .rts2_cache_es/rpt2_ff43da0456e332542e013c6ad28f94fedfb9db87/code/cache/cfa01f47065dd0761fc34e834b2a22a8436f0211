@@ -1,1 +1,0 @@
-{"code":"import \"./style.scss\";\r\n//# sourceMappingURL=index.js.map","map":"{\"version\":3,\"file\":\"index.js\",\"sourceRoot\":\"\",\"sources\":[\"../../src/index.ts\"],\"names\":[],\"mappings\":\"AAAA,OAAO,cAAc,CAAC\"}","dts":{"name":"/home/jim/Sync/word-net/index.d.ts","writeByteOrderMark":false,"text":"import \"./style.scss\";\r\n"}}
