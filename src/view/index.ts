@@ -1,6 +1,6 @@
 import { Interpreter } from "xstate";
 
-import sphere from "./spheres";
+import "./spheres";
 import graph from "../graph";
 
 const { body } = document;
@@ -43,7 +43,6 @@ export default function (
 
   return {
     setState: (state, event) => {
-      sphere.setState(state.value);
 
       if (state.value === "viewSingle" && (event.currentTerm || event.data)) {
         graph.show(event.currentTerm || event.data);

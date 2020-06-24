@@ -1,3 +1,4 @@
+import "./graph.scss";
 import {
   select,
   forceSimulation,
@@ -5,9 +6,7 @@ import {
   forceManyBody,
   forceCenter,
   event,
-  drag,
-  scaleOrdinal,
-  schemeCategory20,
+  drag
 } from "d3";
 import store from "../resultStore";
 
@@ -18,7 +17,6 @@ const svg = select("svg");
 const { innerWidth: width, innerHeight: height } = window;
 wrapper.setAttribute("width", width + "");
 wrapper.setAttribute("height", height + "");
-var color = scaleOrdinal();
 
 const simulation = forceSimulation()
   .force(
@@ -27,7 +25,7 @@ const simulation = forceSimulation()
       return d.id;
     })
   )
-  .force("charge", forceManyBody().strength(-80))
+  .force("charge", forceManyBody().strength(-40))
   .force("center", forceCenter(width / 2, height / 2));
 
 function dragstarted(d) {
@@ -48,6 +46,7 @@ function dragended(d) {
 }
 
 const show = (term) => {
+
   const graph = store.get(term);
 
   wrapper.innerHTML = "";
@@ -60,8 +59,11 @@ const show = (term) => {
     .enter()
     .append("line")
     .attr("stroke-width", function (d) {
-      return Math.sqrt(d.value * 30);
-    });
+      return Math.sqrt(d.value * 10);
+    })
+    .attr("stroke-dasharray", function (d) {
+      return d.value * 10 + " 5";
+    })
 
   var node = svg
     .append("g")
@@ -74,7 +76,7 @@ const show = (term) => {
   var circles = node
     .append("circle")
     .attr("fill", function (d) {
-      return `hsl(${d.group * 40}, 100%, 50%)`;
+      return `hsla(${100 + d.group * 50}, 100%, 50%, 0.5)`;
     })
     .attr("r", function (d) {
       return 15 - d.group * 3;

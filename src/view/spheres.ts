@@ -1,145 +1,99 @@
-import Matter, {
-  Engine,
-  Runner,
-  World,
-  Common,
-  Bodies,
-  Body,
-  Composite,
-} from "matter-js";
-import attractor from "matter-attractors";
+import {
+  select,
+  forceSimulation,
+  forceX,
+  forceY,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  event,
+  drag
+} from "d3";
 import store from "../resultStore";
 import state from "../state";
 
-Matter.use(attractor);
 
-const wrapper = document.getElementById("all");
-const { innerWidth: width, innerHeight: height } = window;
+var width = window.innerWidth, height = window.innerHeight;
+let graph;
 
-// create engine
-var engine = Engine.create();
+var svg = select("#all")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
 
-// create runner
-var runner = Runner.create();
-Runner.run(runner, engine);
+var simulation = forceSimulation()
+  .force("forceX", forceX().strength(.2).x(width * .5))
+  .force("forceY", forceY().strength(.2).y(height * .5))
+  .force("center", forceCenter().x(width * .5).y(height * .5))
+  .force("charge", forceManyBody().strength(0));
 
-// create demo scene
-var world = engine.world;
-world.gravity.scale = 0;
+let dx, dy;
 
-// create a body with an attractor
-var attractiveBody = Bodies.circle(width / 2, height / 2, 1, {
-  isStatic: true,
-  plugin: {
-    attractors: [
-      function (bodyA, bodyB) {
-        return {
-          x: (bodyA.position.x - bodyB.position.x) * 1e-5,
-          y: (bodyA.position.y - bodyB.position.y) * 1e-5,
-        };
-      },
-    ],
-  },
-});
-
-attractiveBody.scale = 1;
-attractiveBody.setScale = (scale) => {
-  const s = scale / attractiveBody.scale;
-  Body.scale(attractiveBody, s, s);
-  attractiveBody.scale *= s;
-};
-
-World.add(world, attractiveBody);
-
-const bodies = [];
-
-function addCircle({
-  radius = Common.random(10, 100),
-  x = Common.random(0, width),
-  y = Common.random(0, height),
-  text = "",
-} = {}) {
-  if (text) radius = text.length * 10;
-
-  var body = Bodies.circle(x, y, radius);
-  body.lastPos = {
-    x: 0,
-    y: 0,
-  };
-  body.radius = radius;
-
-  const element = document.createElement("div");
-  element.classList.add("sphere");
-  element.style.width = radius + "px";
-  element.style.height = radius + "px";
-  wrapper.appendChild(element);
-
-  if (text) {
-    element.innerHTML = text;
-  }
-
-  element.addEventListener("click", (ev) => {
-    state.send("VIEWSINGLE", { currentTerm: text });
-  });
-
-  body.scale = 2;
-  body.setScale = (scale) => {
-    const s = scale / body.scale;
-    Body.scale(body, s, s);
-    body.scale *= s;
-  };
-
-  body.remove = function () {
-    element.remove();
-    Composite.remove(world, body);
-  };
-
-  body.element = element;
-
-  World.add(world, body);
-
-  return body;
+function dragstarted(d) {
+  dx = d.x;
+  dy = d.y;
+  if (!event.active) simulation.alphaTarget(.1).restart();
+  d.fx = d.x;
+  d.fy = d.y;
 }
 
-store.keys().forEach((key) => {
-  bodies.push(addCircle({ text: key }));
-});
+function dragged(d) {
+  d.fx = event.x;
+  d.fy = event.y;
+}
 
-store.on("new", ({ term }) => {
-  bodies.push(addCircle({ text: term }));
-});
+function dragended(d) {
 
-function update() {
-  requestAnimationFrame(update);
+  if (!event.active) simulation.alphaTarget(.1);
+  d.fx = null;
+  d.fy = null;
 
-  for (let i = 0; i < bodies.length; i++) {
-    const body = bodies[i];
-
-    const abs =
-      Math.abs(body.lastPos.x - body.position.x) +
-      Math.abs(body.lastPos.y - body.position.y);
-
-    body.lastPos.x = body.position.x;
-    body.lastPos.y = body.position.y;
-
-    if (abs > 0.03) {
-      body.element.style.transform = `translate(${
-        body.position.x - body.radius / 2
-      }px, ${body.position.y - body.radius / 2}px) scale(${body.scale})`;
-    }
+  if (Math.abs(dx - d.x) + Math.abs(dy - d.y) < 1) {
+    state.send("VIEWSINGLE", { currentTerm: d.id });
   }
 }
 
-update();
+function init() {
 
-export default {
-  setState: (state) => {
-    if (state === "creating") {
-      attractiveBody.setScale(150);
-    } else {
-      attractiveBody.setScale(1);
+  const graph = store.keys().map(k => {
+    return {
+      id: k,
+      radius: 5 + k.length * 10,
     }
-  },
-  addCircle,
-  reset: () => {},
-};
+  })
+
+  //update the simulation based on the data
+  simulation
+    .nodes(graph)
+    .force("collide", forceCollide().strength(1).radius(d => d.radius).iterations(1))
+    .on("tick", function () {
+      node
+        .attr("transform", d => {
+          console.log(d.vx);
+          return "translate(" + d.x + "," + d.y + ")"
+        })
+    });
+
+  var node = svg
+    .selectAll("g")
+    .data(graph)
+    .enter()
+    .append("g");
+
+  var circles = node
+    .append("circle")
+    .attr("r", function (d) { return d.radius; })
+    .attr("cx", function (d) { return d.x; })
+    .attr("cy", function (d) { return d.y; })
+    .call(drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended));
+
+
+  node.append("text").text(function (d) {
+    return d.id;
+  })
+}
+
+init();

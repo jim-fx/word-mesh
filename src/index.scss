@@ -1,9 +1,8 @@
 body {
-  margin: 0;
-  padding: 0;
   overflow: hidden;
-  height: 100vh;
-  font-family: "Comfortaa";
+  font-family: "Poiret One";
+  background-size: cover;
+  background-repeat: no-repeat;
   background: linear-gradient(150deg, #16171c, rgba(18, 20, 27, 0.95));
 }
 
@@ -42,11 +41,8 @@ body {
 
 #action-list {
   position: absolute;
-  bottom: 0px;
-  display: flex;
-  left: 50vw;
-
-  transform: translateX(-50%);
+  bottom: 130px;
+  left: 10px;
 }
 
 .state-loading #action-list {
@@ -54,6 +50,11 @@ body {
 }
 
 #action-list > .square {
+  position: absolute;
+  left: 0;
+
+  display: none;
+
   cursor: pointer;
 
   width: 80px;
@@ -61,10 +62,17 @@ body {
 
   box-sizing: border-box;
 
-  display: block;
   padding: 20px;
 
   border-radius: 50%;
+}
+
+.state-viewAll #create-new {
+  display: block;
+}
+
+.state-creating #list-all {
+  display: block;
 }
 
 .square {
@@ -83,8 +91,7 @@ body {
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  box-shadow: -10px -10px 30px 0 #000000a3,
-    10px 10px 30px 0 rgba(59, 59, 76, 0.31);
+  box-shadow: -10px -10px 30px 0 #000000a3, 10px 10px 30px 0 rgba(59, 59, 76, 0.31);
   z-index: -1;
 
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -115,43 +122,9 @@ section {
   top: 25%;
   left: 25%;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   border-radius: 100%;
 
   background-color: #16171c;
-}
-
-#create > #input {
-  position: relative;
-  font-size: 2em !important;
-  color: white;
-
-  background: none;
-  min-width: 100px;
-  border: none;
-  padding-bottom: 2px;
-  transition: width 0.5s !important;
-  outline: none;
-}
-
-#create > #input:empty::before {
-  content: "Word..";
-  color: gray;
-  position: absolute;
-}
-
-#create > #input::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 5px;
-  bottom: -5px;
-  left: 0px;
-  border-radius: 5px;
-  background-color: rgb(59, 62, 75);
 }
 
 .state-creating #create {
@@ -175,11 +148,21 @@ section {
   align-items: center;
   justify-content: center;
   color: white;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.5s ease;
+
+  background: linear-gradient(315deg, #16171c77, #3b3e4b77);
+  box-shadow: 10px 10px 20px rgba(255, 255, 255, 0.02), -15px -15px 30px rgba(0, 0, 0, 0.25);
 }
 
 #all > .sphere:hover {
   background-color: #1d1e25;
+  box-shadow: 5px 5px 10px rgba(255, 255, 255, 0.02), -5px -5px 10px rgba(0, 0, 0, 0.25);
+}
+
+#all > svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .sphere-center {
@@ -205,33 +188,83 @@ section {
 #single {
   opacity: 0;
   pointer-events: none;
+  > svg {
+    position: absolute;
+  }
 }
 
-.state-viewSingle #single {
-  opacity: 1;
-  pointer-events: all;
+.state-viewSingle,
+.state-creating {
+  > #single {
+    opacity: 1;
+    pointer-events: all;
+  }
 }
 
-.links line {
-  stroke: #999;
-  stroke-opacity: 0.6;
+.state-creating {
+  #input-form {
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: all;
+    opacity: 1;
+  }
+  svg {
+    display: none;
+  }
 }
 
-.nodes circle {
-  fill: gray;
-}
+#input-form {
+  z-index: 99;
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  top: 50vh;
+  left: 50vw;
+  border-radius: 50%;
 
-text {
-  font-family: sans-serif;
-  font-size: 10px;
-  fill: white;
-  text-anchor: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
-  user-select: none;
-  cursor: pointer;
+  opacity: 0;
+
+  > #input {
+    position: relative;
+    font-size: 2em !important;
+    color: white;
+
+    background: none;
+    min-width: 100px;
+    border: none;
+    padding-bottom: 2px;
+    transition: width 0.5s !important;
+    outline: none;
+
+    &:empty::before {
+      content: "Word..";
+      color: gray;
+      position: absolute;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 5px;
+      bottom: -5px;
+      left: 0px;
+      border-radius: 5px;
+      background-color: rgb(59, 62, 75);
+    }
+  }
 }
 
 svg {
   height: 100%;
   width: 100%;
+
+  > * {
+    fill: #16171c;
+  }
 }

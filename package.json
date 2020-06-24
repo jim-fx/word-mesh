@@ -1,22 +1,11 @@
 {
   "name": "word-net",
   "source": "src/index.ts",
-<<<<<<< HEAD
-  "main": "public/bundle.js",
-  "version": "1.0.0",
-  "license": "MIT",
-  "scripts": {
-    "watch": "microbundle watch",
-    "build": "microbundle build"
-  },
-  "dependencies": {
-    "d3": "^5.16.0",
-=======
   "main": "public/dist/bundle.js",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "watch": "microbundle watch --external none --css-modules false --format es",
+    "watch": "microbundle watch --external none --no-compress --raw --css-modules false --format es",
     "build": "microbundle build --external none --css-modules false"
   },
   "dependencies": {
@@ -24,16 +13,12 @@
     "matter-attractors": "^0.1.6",
     "matter-dom-plugin": "^1.0.0",
     "matter-js": "^0.12.0",
->>>>>>> feat: some changes
     "node-sass": "^4.14.1",
     "pack-spheres": "^1.0.4",
     "xstate": "^4.10.0"
   },
   "devDependencies": {
-<<<<<<< HEAD
-=======
     "esbuild": "^0.5.11",
->>>>>>> feat: some changes
     "microbundle": "^0.12.2"
   }
 }
