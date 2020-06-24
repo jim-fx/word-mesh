@@ -1,10 +1,12 @@
 import { createMachine, interpret, assign } from "xstate";
+import crawl from "./crawl";
 
 const machine = createMachine({
   id: "toggle",
   initial: "viewAll",
   context: {
     currentTerm: null,
+    error: null,
   },
   states: {
     viewAll: {
@@ -15,11 +17,21 @@ const machine = createMachine({
     },
     viewSingle: {
       on: {
-        EXIT: "viewAll",
+        VIEWALL: "viewAll",
         CREATE: "creating",
       },
     },
     loading: {
+      invoke: {
+        src: (context, event) => crawl(event.currentTerm),
+        onDone: {
+          target: "viewSingle",
+        },
+        onError: {
+          target: "error",
+          actions: assign({ error: (context, event) => event.data }),
+        },
+      },
       on: {
         ERROR: "error",
         SUCCESS: "viewSingle",
@@ -34,14 +46,16 @@ const machine = createMachine({
     },
     creating: {
       on: {
+        VIEWALL: "viewAll",
         CREATED: "loading",
       },
     },
   },
 });
 
-const swService = interpret(machine)
-  .onTransition((state) => console.log(state.value))
-  .start();
+const swService = interpret(machine).start();
+
+// @ts-ignore
+window.service = swService;
 
 export default swService;

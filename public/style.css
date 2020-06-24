@@ -1,0 +1,237 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+  font-family: "Comfortaa";
+  background: linear-gradient(150deg, #16171c, rgba(18, 20, 27, 0.95));
+}
+
+.bg {
+  background: #16171c;
+  color: white;
+}
+.bg-gradient {
+  color: #ddd;
+  background: linear-gradient(150deg, #16171c, #3b3e4b9a);
+  fill: #ddd;
+}
+
+@media (prefers-color-scheme: dark) {
+  .bg {
+    background: #16171c;
+    color: white;
+  }
+  .bg-gradient {
+    background: linear-gradient(150deg, #16171c, #3b3e4b9a);
+    color: #ddd;
+    fill: #ddd;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .bg {
+    background: #333;
+    color: white;
+  }
+  .bg-gradient {
+    background: black;
+    color: #ddd;
+  }
+}
+
+#action-list {
+  position: absolute;
+  bottom: 0px;
+  display: flex;
+  left: 50vw;
+
+  transform: translateX(-50%);
+}
+
+.state-loading #action-list {
+  display: none;
+}
+
+#action-list > .square {
+  cursor: pointer;
+
+  width: 80px;
+  height: 80px;
+
+  box-sizing: border-box;
+
+  display: block;
+  padding: 20px;
+
+  border-radius: 50%;
+}
+
+.square {
+  position: relative;
+  width: 20vmin;
+  margin: 1.5rem;
+  padding-top: 20vmin;
+  z-index: 0;
+}
+
+.shadow--offset::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: -10px -10px 30px 0 #000000a3,
+    10px 10px 30px 0 rgba(59, 59, 76, 0.31);
+  z-index: -1;
+
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.shadow--hover:hover::before {
+  transform: scale(0.8);
+  opacity: 0.8;
+}
+
+section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  pointer-events: none;
+
+  transition: opacity 1s ease, transform 1s ease, border-radius 1s ease;
+}
+
+#create {
+  transform: scale(0);
+
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 100%;
+
+  background-color: #16171c;
+}
+
+#create > #input {
+  position: relative;
+  font-size: 2em !important;
+  color: white;
+
+  background: none;
+  min-width: 100px;
+  border: none;
+  padding-bottom: 2px;
+  transition: width 0.5s !important;
+  outline: none;
+}
+
+#create > #input:empty::before {
+  content: "Word..";
+  color: gray;
+  position: absolute;
+}
+
+#create > #input::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  bottom: -5px;
+  left: 0px;
+  border-radius: 5px;
+  background-color: rgb(59, 62, 75);
+}
+
+.state-creating #create {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+}
+
+#all > .sphere {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 100%;
+  background-color: #16171c;
+  transition: transform 0.1s;
+  cursor: pointer;
+
+  font-size: 0.8em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+#all > .sphere:hover {
+  background-color: #1d1e25;
+}
+
+.sphere-center {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  transform: translate(-50%, 50%);
+  color: white;
+}
+
+.state-loading #loading {
+  opacity: 1;
+}
+
+.state-viewAll #all {
+  pointer-events: all;
+}
+
+.state-viewSingle #all {
+  opacity: 0.2;
+}
+
+#single {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.state-viewSingle #single {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  fill: gray;
+}
+
+text {
+  font-family: sans-serif;
+  font-size: 10px;
+  fill: white;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+svg {
+  height: 100%;
+  width: 100%;
+}
