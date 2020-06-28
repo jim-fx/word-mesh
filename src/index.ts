@@ -1,12 +1,13 @@
 import "./index.scss";
 
-import graph from "./graph";
 import crawl from "./crawl";
-import state from "./state";
+import createState from "./state";
 import createView from "./view";
 
-const v = createView(state);
+const state = createState<CrawlResult>();
 
-state.onTransition((state, event) => {
-  v.setState(state, event);
-});
+createView(state);
+
+state.on("created", (currentTerm) => {});
+
+state.on("loading", () => {});

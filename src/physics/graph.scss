@@ -1,10 +1,10 @@
 .links line {
-  stroke: #ffffff62;
+  stroke: #ffffff;
 }
 
-.nodes circle {
-  // fill: #16171c;
-}
+// .nodes circle {
+//   fill: #16171c;
+// }
 
 text {
   font-family: sans-serif;
@@ -17,18 +17,16 @@ text {
   font-family: "Poiret One";
 }
 
-#all > svg {
-  text {
-    font-size: 25px;
+#single {
+  svg {
+    display: none;
   }
+}
 
-  circle {
-    cursor: pointer;
-
-    transition: fill 0.3s ease;
-
-    &:hover {
-      fill: #272831;
+.state-viewSingle {
+  #single {
+    svg {
+      display: block;
     }
   }
 }

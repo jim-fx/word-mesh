@@ -2,6 +2,7 @@ body {
   overflow: hidden;
   font-family: "Poiret One";
   background-size: cover;
+  height: 100vh;
   background-repeat: no-repeat;
   background: linear-gradient(150deg, #16171c, rgba(18, 20, 27, 0.95));
 }
@@ -45,15 +46,9 @@ body {
   left: 10px;
 }
 
-.state-loading #action-list {
-  display: none;
-}
-
 #action-list > .square {
   position: absolute;
   left: 0;
-
-  display: none;
 
   cursor: pointer;
 
@@ -67,12 +62,18 @@ body {
   border-radius: 50%;
 }
 
-.state-viewAll #create-new {
-  display: block;
+#create-new {
+  display: none;
 }
 
-.state-creating #list-all {
-  display: block;
+.state-viewAll {
+  #create-new {
+    display: block;
+  }
+
+  #list-all {
+    display: none;
+  }
 }
 
 .square {
@@ -91,7 +92,8 @@ body {
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  box-shadow: -10px -10px 30px 0 #000000a3, 10px 10px 30px 0 rgba(59, 59, 76, 0.31);
+  box-shadow: -10px -10px 30px 0 #000000a3,
+    10px 10px 30px 0 rgba(59, 59, 76, 0.31);
   z-index: -1;
 
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -133,46 +135,6 @@ section {
   transform: scale(1);
 }
 
-#all > .sphere {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 100%;
-  background-color: #16171c;
-  transition: transform 0.1s;
-  cursor: pointer;
-
-  font-size: 0.8em;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: background-color 0.3s ease, box-shadow 0.5s ease;
-
-  background: linear-gradient(315deg, #16171c77, #3b3e4b77);
-  box-shadow: 10px 10px 20px rgba(255, 255, 255, 0.02), -15px -15px 30px rgba(0, 0, 0, 0.25);
-}
-
-#all > .sphere:hover {
-  background-color: #1d1e25;
-  box-shadow: 5px 5px 10px rgba(255, 255, 255, 0.02), -5px -5px 10px rgba(0, 0, 0, 0.25);
-}
-
-#all > svg {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.sphere-center {
-  position: absolute;
-  top: 50vh;
-  left: 50vw;
-  transform: translate(-50%, 50%);
-  color: white;
-}
-
 .state-loading #loading {
   opacity: 1;
 }
@@ -201,22 +163,31 @@ section {
   }
 }
 
+#input-form::after {
+  background-color: #16171c;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s 0.1s ease;
+}
 .state-creating {
   #input-form {
     transform: translate(-50%, -50%) scale(1);
     pointer-events: all;
     opacity: 1;
   }
-  svg {
-    display: none;
+  #input-form::after {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 #input-form {
   z-index: 99;
   position: absolute;
-  width: 50vw;
-  height: 50vw;
+  width: 100vw;
+  height: 100vh;
+  max-height: unquote("min(50vw, 50vh)");
+  max-width: unquote("min(50vw, 50vh)");
   top: 50vh;
   left: 50vw;
   border-radius: 50%;
@@ -228,6 +199,11 @@ section {
   transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
   opacity: 0;
+
+  background-color: #16171c;
+  background: linear-gradient(100deg, #16171c, #3b3e4b);
+
+  transition: opacity 0.3s ease, box-shadow 0.3s 0.3s ease;
 
   > #input {
     position: relative;
@@ -242,29 +218,31 @@ section {
     outline: none;
 
     &:empty::before {
-      content: "Word..";
+      content: "new word..";
+      white-space: nowrap;
+      text-align: center;
+      width: 100%;
       color: gray;
       position: absolute;
     }
 
-    &::after {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 5px;
-      bottom: -5px;
-      left: 0px;
-      border-radius: 5px;
-      background-color: rgb(59, 62, 75);
-    }
+    // &::after {
+    //   content: "";
+    //   position: absolute;
+    //   width: 100%;
+    //   height: 5px;
+    //   bottom: -5px;
+    //   left: 0px;
+    //   border-radius: 5px;
+    //   background-color: rgb(59, 62, 75);
+    // }
   }
 }
 
-svg {
-  height: 100%;
-  width: 100%;
-
-  > * {
-    fill: #16171c;
+#action-list {
+  svg {
+    * {
+      fill: #16171c;
+    }
   }
 }

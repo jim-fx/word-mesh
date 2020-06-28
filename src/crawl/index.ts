@@ -1,43 +1,37 @@
-import store from "../resultStore";
-
 interface Node {
   id: string;
-  group: number;
+  depth: number;
 }
 
 interface Edge {
   source: string;
   target: string;
-  value: number;
+  weight: number;
 }
 
-const cleanTerm = (term: string) => term.trim().toLowerCase().split(" ")[0];
+const cleanTerms = (term, terms: string[]) => {
+  const r1 = new RegExp(`^${term} vs `, "gm");
+  const r2 = new RegExp(`^${term} `, "gm");
+  return terms.map((t) => t.replace(r1, "").replace(r2, ""));
+};
 
-async function request(term) {
-  const res = await fetch(
-    "https://cors-anywhere.herokuapp.com/google.com/complete/search?client=firefox&q=" +
-    term +
-    "%20vs",
-    {
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+const makeUrl = (term) =>
+  "https://cors-anywhere.herokuapp.com/google.com/complete/search?client=firefox&q=" +
+  term +
+  "%20vs";
 
-  const json = await res.json();
-
-  const terms = json[1];
-
-  // console.log("CRAWL: " + term);
-
-  const cleanTerms = terms
-    .map((t) => t.replace(term + " vs ", ""))
-    .map(cleanTerm);
-
-  return cleanTerms;
-}
+const request = (term): Promise<string[]> =>
+  new Promise((resolve, reject) => {
+    fetch(makeUrl(term))
+      .then((res) => {
+        if (res.ok) {
+          res.json().then((j) => resolve(j[1]));
+        } else {
+          reject(res.statusText);
+        }
+      })
+      .catch(reject);
+  });
 
 const NodeStore = () => {
   const nodes: { [key: string]: Node } = {};
@@ -48,12 +42,12 @@ const NodeStore = () => {
     add: (term, parentNode?: Node) => {
       if (term in nodes) return nodes[term];
       else {
-        let group = 0;
-        if (parentNode) group = parentNode.group + 1;
+        let depth = 0;
+        if (parentNode) depth = parentNode.depth + 1;
 
         const newNode = {
           id: term,
-          group,
+          depth,
         };
         nodes[term] = newNode;
         return newNode;
@@ -73,56 +67,54 @@ const EdgeStore = () => {
       const id = term1 + term2;
 
       if (id in edges) {
-        edges[id].value += 1;
+        edges[id].weight += 1;
       } else {
         edges[id] = {
           source: term1,
           target: term2,
-          value: 1,
+          weight: 1,
         };
       }
     },
   };
 };
 
-async function handleSingleNode(
-  nodeStore,
-  edgeStore,
-  rootNode
-): Promise<Node[]> {
-  const terms = await request(rootNode.id);
+const handleSingleNode = (nodeStore, edgeStore, rootNode): Promise<Node[]> =>
+  new Promise((resolve, reject) => {
+    request(rootNode.id)
+      .then((rawTerms) => cleanTerms(rootNode.id, rawTerms))
+      .then((terms) => {
+        const newNodes: Node[] = [];
+        const oldNodes: Node[] = [];
 
-  const newNodes: Node[] = [];
-  const oldNodes: Node[] = [];
+        const allNodes = terms.map((t) => {
+          const isNew = nodeStore.has(t);
+          const newNode = nodeStore.add(t, rootNode);
+          (isNew ? oldNodes : newNodes).push(newNode);
+          return newNode;
+        });
 
-  const allNodes = terms.map((t) => {
-    const isNew = nodeStore.has(t);
-    const newNode = nodeStore.add(t, rootNode);
-    (isNew ? oldNodes : newNodes).push(newNode);
-    return newNode;
+        allNodes.forEach((node) => edgeStore.add(rootNode, node));
+
+        resolve(newNodes);
+      })
+      .catch(reject);
   });
-
-  allNodes.forEach((node) => edgeStore.add(rootNode, node));
-
-  return newNodes;
-}
 
 const BATCH_SIZE = 5;
 const MAX_AMOUNT = 100;
 
-export default (term: string) =>
+export default (
+  term: string,
+  log: (s: string, m: number, c: number) => void = () => {}
+): Promise<CrawlResult> =>
   new Promise((resolve, reject) => {
-    term = cleanTerm(term);
-
-    if (store.has(term)) return store.get(term);
-
     const nodeStore = NodeStore();
     const edgeStore = EdgeStore();
 
     const queue: Node[] = [nodeStore.add(term)];
 
-    async function workQueue() {
-      console.log("start");
+    function workQueue() {
       const currentBatchSize =
         nodeStore.size() + BATCH_SIZE > MAX_AMOUNT
           ? MAX_AMOUNT - nodeStore.size()
@@ -130,30 +122,27 @@ export default (term: string) =>
 
       const batchNodes = queue.splice(0, currentBatchSize);
 
-      //@ts-ignore
-      const newNodes = await Promise.all(
+      Promise.all(
         batchNodes.map((n) => handleSingleNode(nodeStore, edgeStore, n))
-      );
+      )
+        .then((newNodes) => {
+          //@ts-ignore
+          queue.push(...newNodes.flat());
+          log("a", MAX_AMOUNT, nodeStore.size());
 
-      //@ts-ignore;
-      queue.push(...newNodes.flat());
-
-      console.log("end");
-
-      if (queue.length && nodeStore.size() < MAX_AMOUNT) {
-        workQueue();
-      } else {
-        const result = {
-          nodes: nodeStore.get(),
-          edges: edgeStore.get(),
-        };
-
-        setTimeout(() => {
-          store.add(term, result);
-          resolve(term);
-        }, 500);
-      }
+          if (queue.length && nodeStore.size() < MAX_AMOUNT) {
+            workQueue();
+          } else {
+            setTimeout(() => {
+              resolve({
+                term,
+                nodes: nodeStore.get(),
+                edges: edgeStore.get(),
+              });
+            }, 500);
+          }
+        })
+        .catch(reject);
     }
-
     workQueue();
   });
