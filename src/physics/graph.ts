@@ -10,6 +10,7 @@ import {
   forceCenter,
   scaleOrdinal,
   schemeCategory10,
+  linkVertical,
 } from "d3";
 
 const { innerWidth: width, innerHeight: height } = window;
@@ -48,6 +49,14 @@ export default function ({ wrapper }: { wrapper: HTMLElement }) {
 
   const s = svg.node();
   wrapper.appendChild(s);
+
+  let labelsHidden = false;
+  window.addEventListener("keydown", ({ key }) => {
+    if (key.toLowerCase() === "h") {
+      labelsHidden = !labelsHidden;
+      wrapper.classList[labelsHidden ? "add" : "remove"]("labels-hidden");
+    }
+  });
 
   let simulation;
 

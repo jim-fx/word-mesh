@@ -249,3 +249,9 @@ section {
     }
   }
 }
+
+#single.labels-hidden {
+  svg text {
+    display: none;
+  }
+}
