@@ -80,7 +80,8 @@ body {
   background: linear-gradient(150deg, var(--bg-dark), rgba(59, 62, 75, 0.6));
   /* lighten */
 
-  box-shadow: -15px -15px 70px rgba(0, 0, 0, 0.25), 10px 14px 21px rgba(201, 201, 201, 0.02),
+  box-shadow: -15px -15px 70px rgba(0, 0, 0, 0.25),
+    10px 14px 21px rgba(201, 201, 201, 0.02),
     inset 0px 0px 86px rgba(255, 255, 255, 0.04);
 
   z-index: -1;
@@ -209,6 +210,8 @@ section {
     font-size: 2em !important;
     color: white;
 
+    width: 100%;
+    text-align: center;
     background: none;
     min-width: 100px;
     border: none;
@@ -218,11 +221,12 @@ section {
 
     &:empty::before {
       content: "new word..";
+      position: absolute;
+      left: 0;
       white-space: nowrap;
       text-align: center;
       width: 100%;
       color: gray;
-      position: absolute;
     }
 
     // &::after {
