@@ -1,2 +1,3 @@
-import "../types";
-export default function (state: State<CrawlResult>): void;
+import "../@types";
+import crawl from "../crawl";
+export default function (state: State<Await<ReturnType<typeof crawl>>>): void;
