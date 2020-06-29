@@ -1,0 +1,27 @@
+#all > .sphere {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  border-radius: 100%;
+
+  cursor: pointer;
+  user-select: none;
+
+  font-size: 1.5em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+
+  background: linear-gradient(315deg, var(--bg-dark), rgba(59, 62, 75, 0.47));
+  transition: background-color 0.3s ease, box-shadow 0.5s ease, transform 0.2s ease;
+
+  box-shadow: -15px -15px 70px rgba(0, 0, 0, 0.25), 10px 14px 21px rgba(201, 201, 201, 0.02),
+    inset 0px 0px 86px rgba(255, 255, 255, 0.04);
+}
+
+#all > .sphere:hover {
+  box-shadow: 5px 5px 10px rgba(255, 255, 255, 0.02), -5px -5px 10px rgba(0, 0, 0, 0.25);
+}

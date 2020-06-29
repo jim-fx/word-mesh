@@ -1,17 +1,19 @@
+import "../@types";
 import e from "./elements";
-import "../types";
-import crawl from "../crawl";
 
-import { createGraph, createSpheres } from "../physics";
+import crawl from "../crawl";
 import loading from "./loading";
 
-export default function (state: State<CrawlResult>) {
+import { createGraph } from "../physics";
+import createSpheres from "./spheres";
+
+export default function (state: State<Await<ReturnType<typeof crawl>>>) {
   const sphereScene = createSpheres({ wrapper: e.all });
   const graphScene = createGraph({ wrapper: e.single });
 
   function addSphere(term) {
     const s = sphereScene.addSphere(term);
-    s.e.addEventListener("click", () => {
+    s.data.e.addEventListener("click", () => {
       state.set("viewSingle", { currentTerm: term });
     });
     return s;
@@ -40,28 +42,32 @@ export default function (state: State<CrawlResult>) {
   e.viewAll.addEventListener("click", () => state.set("viewAll"));
 
   state.on("state.created", ({ currentTerm }) => {
+    if (state.store.has(currentTerm)) {
+      state.set("viewSingle", { currentTerm });
+      return;
+    }
+
     const s = addSphere(currentTerm);
-    s.e.classList.add("loading");
+    s.data.e.classList.add("loading");
     sphereScene.start();
-    sphereScene.scaleCenter(200);
+    sphereScene.scaleCenter(0);
 
     const loader = loading();
-    s.e.appendChild(loader.wrapper);
+    s.data.e.appendChild(loader.wrapper);
 
     crawl(currentTerm, (s, m, c) => {
       loader.set(c / m);
     })
       .then((result) => {
         loader.remove();
-        s.e.classList.remove("loading");
+        s.data.e.classList.remove("loading");
         state.store.add(currentTerm, result);
         state.set("viewSingle", { currentTerm });
       })
       .catch((err) => {
-        console.error(err);
         alert(err);
-        s.e.classList.add("error");
-        s.e.innerHTML = err;
+        s.data.e.classList.add("error");
+        s.data.e.innerHTML = err;
       });
   });
 
@@ -80,14 +86,23 @@ export default function (state: State<CrawlResult>) {
 
     if (int) clearTimeout(int);
 
-    if (state === "viewAll") {
-      sphereScene.start();
-      sphereScene.scaleCenter(0);
-    } else {
+    if (state === "creating") {
       sphereScene.scaleCenter(
         Math.min(window.innerWidth, window.innerHeight) * 0.5
       );
       int = setTimeout(() => sphereScene.stop(), 10000);
+      sphereScene.setDampening(0.99);
+      sphereScene.setSmoothing(0.98);
+    } else {
+      if (state === "viewSingle") {
+        sphereScene.stop();
+      } else {
+        sphereScene.start();
+      }
+
+      sphereScene.scaleCenter(0);
+      sphereScene.setDampening(0.9);
+      sphereScene.setSmoothing(0.9);
     }
 
     if (state !== "viewSingle") graphScene.stop();

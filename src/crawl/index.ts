@@ -9,6 +9,19 @@ interface Edge {
   weight: number;
 }
 
+interface CrawlResult {
+  term: string;
+  nodes: {
+    id: string;
+    depth: number;
+  }[];
+  edges: {
+    source: string;
+    target: string;
+    weight: number;
+  };
+}
+
 const cleanTerms = (term, terms: string[]) => {
   const r1 = new RegExp(`^${term} vs `, "gm");
   const r2 = new RegExp(`^${term} `, "gm");

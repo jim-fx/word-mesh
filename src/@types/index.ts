@@ -1,16 +1,3 @@
-interface CrawlResult {
-  term: string;
-  nodes: {
-    id: string;
-    depth: number;
-  }[];
-  edges: {
-    source: string;
-    target: string;
-    weight: number;
-  };
-}
-
 interface Store<T> {
   keys: () => string[];
   has: (term: any) => boolean;
@@ -28,3 +15,9 @@ interface State<T> {
   on(event: string, cb);
   set(state: string, value?: any);
 }
+
+type Await<T> = T extends {
+  then(onfulfilled?: (value: infer U) => unknown): unknown;
+}
+  ? U
+  : T;
