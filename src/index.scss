@@ -255,3 +255,10 @@ section {
     display: none;
   }
 }
+
+#single > p {
+  color: var(--text-color);
+  text-align: right;
+  margin: 0;
+  padding: 10px;
+}
