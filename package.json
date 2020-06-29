@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "run-p serve watch",
     "serve": "live-server public",
-    "build": "microbundle build --external none --css-modules false",
-    "watch": "microbundle watch --external none --no-compress --raw --css-modules false -o ./public/dist/bundle.js"
+    "build": "microbundle build --external none --css-modules=false --no-compress",
+    "watch": "microbundle watch --external none --css-modules=false --no-compress"
   },
   "dependencies": {
     "d3": "^5.16.0",
