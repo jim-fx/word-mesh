@@ -2,7 +2,7 @@
 <br />
 <p align="center">
 
-  <img src="./public/assets/circles.svg">
+  <img src="./public/assets/circles.svg" width="200px">
 
   <h3 align="center">WordMesh</h3>
 
