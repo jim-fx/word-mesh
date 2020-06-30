@@ -1,0 +1,45 @@
+#toggle {
+  position: fixed;
+  z-index: 99;
+
+  top: 5px;
+  left: 5px;
+
+  height: 30px;
+  width: 30px;
+
+  border-radius: 15px;
+
+  background: linear-gradient(45deg, #fff100, red);
+
+  transition: background 0.3s ease;
+
+  cursor: pointer;
+}
+
+#toggle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 20px;
+  height: 20px;
+
+  transform-origin: 15px 5px;
+
+  transform: scale(0);
+  background-color: white;
+
+  border-radius: 10px;
+
+  transition: transform 0.3s ease;
+}
+
+#toggle.is-light {
+  background: linear-gradient(45deg, #211f68, rgb(89, 99, 133));
+
+  &::after {
+    transform: scale(1);
+  }
+}

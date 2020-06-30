@@ -3,6 +3,7 @@ import e from "./elements";
 
 import crawl from "../crawl";
 import loading from "./loading";
+import "./toggle";
 
 import { createGraph } from "../physics";
 import createSpheres from "./spheres";
@@ -81,8 +82,12 @@ export default function (state: State<Await<ReturnType<typeof crawl>>>) {
   });
 
   let int;
-  state.on("state", (state) => {
-    e.body.className = `state-${state}`;
+  state.on("state", (state: String) => {
+    Array.prototype.slice.call(e.body.classList).forEach((c: string) => {
+      if (c.includes("state-")) e.body.classList.remove(c);
+    });
+
+    e.body.classList.add(`state-${state}`);
 
     if (int) clearTimeout(int);
 
