@@ -1,7 +1,10 @@
 :root {
-  --bg-dark: #16171c;
-  --bg-light: #3b3e4b62;
-  --text-color: #ddd;
+  --dark-bg-dark: #16171c;
+  --dark-bg-light: #3b3e4b62;
+  --dark-text-color: #ddd;
+  --light-bg-dark: white;
+  --light-bg-light: rgba(148, 148, 148, 0.95);
+  --light-text-color: #252525;
   background-color: var(--bg-dark); }
 
 body {
@@ -13,26 +16,39 @@ body {
   height: 100vh;
   background-repeat: no-repeat;
   background-color: var(--bg-dark);
-  background: linear-gradient(150deg, var(--bg-dark), var(--bg-light)); }
+  background: linear-gradient(150deg, var(--bg-dark), var(--bg-light));
+  transition: all 1s ease; }
 
 .bg {
   background: var(--bg-dark);
   color: var(--text-color); }
 
 .bg-gradient {
-  color: #ddd;
+  color: var(--text-color);
   background: linear-gradient(150deg, var(--bg-dark), var(--bg-light)); }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    --bg-dark: #e2e2e2;
-    --bg-light: rgba(148, 148, 148, 0.95);
-    --text-color: #252525; } }
+  body {
+    --bg-dark: var(--dark-bg-dark);
+    --bg-light: var(--dark-bg-light);
+    --text-color: var(--dark-text-color); } }
+
+body.mode-light {
+  background-color: white;
+  --bg-dark: var(--light-bg-dark);
+  --bg-light: var(--light-bg-dark);
+  --text-color: var(--light-text-color); }
+
+body.mode-dark {
+  background-color: black;
+  --bg-dark: var(--dark-bg-dark);
+  --bg-light: var(--dark-bg-light);
+  --text-color: var(--dark-text-color); }
 
 #action-list {
   position: absolute;
-  bottom: 130px;
-  left: 10px; }
+  bottom: 120px;
+  left: -10px; }
 
 #action-list > .square {
   position: absolute;
@@ -130,6 +146,15 @@ section {
   pointer-events: none; }
   #single > svg {
     position: absolute; }
+  #single > input {
+    position: absolute;
+    display: none;
+    left: 50vw;
+    top: 10px;
+    transform: translateX(-50%); }
+
+.state-viewSingle > #single > input {
+  display: block; }
 
 #input-form::after {
   background-color: var(--bg-dark);
@@ -203,6 +228,36 @@ section {
     stroke-dashoffset: -315px;
     transition: stroke-dashoffset 0.3s ease;
     fill: none; }
+
+#toggle {
+  position: fixed;
+  z-index: 99;
+  top: 10px;
+  left: 10px;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #fff100, red);
+  transition: background 0.3s ease;
+  cursor: pointer; }
+
+#toggle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 66%;
+  height: 66%;
+  transform-origin: 66% 33%;
+  transform: scale(0);
+  background-color: white;
+  border-radius: 10px;
+  transition: transform 0.3s ease; }
+
+#toggle.is-light {
+  background: linear-gradient(45deg, #211f68, #596385); }
+  #toggle.is-light::after {
+    transform: scale(1); }
 
 .links line {
   stroke: #ffffff; }

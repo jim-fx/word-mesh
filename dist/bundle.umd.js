@@ -97,6 +97,7 @@
         emit("state.out." + state, {});
         emit("state", nextState);
         emit("state." + nextState, value);
+        state = nextState;
       }
     };
   }
@@ -217,9 +218,7 @@
   };
 
   var BATCH_SIZE = 5;
-  var MAX_AMOUNT = 150;
-  var FILTER_PERCENTAGE = 0.5;
-
+  var MAX_AMOUNT = 200;
   function walkGraph(nodes, edges) {
     return nodes.sort(function (a, b) {
       return a.depth > b.depth ? 1 : -1;
@@ -237,12 +236,10 @@
       });
     }).flat();
   }
-
-  var finalFilter = function finalFilter(nodes, edges) {
+  var calculateDistanceToRoot = function calculateDistanceToRoot(nodes, edges) {
     var maxWeight = edges.reduce(function (a, b) {
       return a > b.weight ? a : b.weight;
     }, 0);
-    var maxDistance = 0;
     var rootNode = nodes.find(function (n) {
       return n.depth === 0;
     });
@@ -254,7 +251,6 @@
       var parent = _ref3.parent,
           node = _ref3.node,
           edge = _ref3.edge;
-      console.log(node.depth, parent, node, edge);
 
       if (!parent) {
         //RootNode
@@ -262,31 +258,15 @@
       } else {
         //We need to inverse the weight
         var distanceToRoot = (parent.dtr || 0) + node.depth + (maxWeight - edge.weight);
-        maxDistance = Math.max(maxDistance, distanceToRoot);
         node.dtr = (node.dtr || 0) + distanceToRoot;
       }
     });
-    console.log("max distance to root " + maxDistance); //Remove a certain percentage of nodes
-
-    var filteredNodes = nodes.sort(function (a, b) {
-      return a.dtr > b.dtr ? 1 : -1;
-    }).slice(0, Math.floor(nodes.length * FILTER_PERCENTAGE));
-    var nodeIds = {};
-    filteredNodes.forEach(function (n) {
-      nodeIds[n.id] = true;
-    });
-    console.log("filtered out " + (nodes.length - filteredNodes.length) + " nodes"); //Filter out all edges which connect to removed nodes;
-
-    var filteredEdges = edges.filter(function (e) {
-      return e.source in nodeIds && e.target in nodeIds;
-    });
     return {
-      nodes: filteredNodes,
-      edges: filteredEdges
+      edges: edges,
+      nodes: nodes
     };
   };
-
-  var crawl = (function (term, log) {
+  var crawl = function crawl(term, log) {
     if (log === void 0) {
       log = function log() {};
     }
@@ -309,14 +289,10 @@
           if (queue.length && nodeStore.size() < MAX_AMOUNT) {
             workQueue();
           } else {
-            var _finalFilter = finalFilter(nodeStore.get(), edgeStore.get()),
-                nodes = _finalFilter.nodes,
-                edges = _finalFilter.edges;
-
             resolve({
               term: term,
-              nodes: nodes,
-              edges: edges
+              nodes: nodeStore.get(),
+              edges: edgeStore.get()
             });
           }
         })["catch"](reject);
@@ -324,7 +300,7 @@
 
       workQueue();
     });
-  });
+  };
 
   function loading () {
     var wrapper = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -350,6 +326,33 @@
       remove: remove
     };
   }
+
+  var element = document.getElementById("toggle");
+  var isLight = false;
+
+  var setMode = function setMode(light) {
+    isLight = light;
+    document.body.classList[light ? "add" : "remove"]("mode-light");
+    document.body.classList[light ? "remove" : "add"]("mode-dark");
+    element.classList[light ? "add" : "remove"]("is-light");
+  };
+
+  if ("color-mode" in localStorage) {
+    setMode(localStorage.getItem("color-mode") === "true");
+  } else {
+    if (window.matchMedia) {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        setMode(false);
+      } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+        setMode(true);
+      }
+    }
+  }
+
+  element.addEventListener("click", function () {
+    setMode(!isLight);
+    localStorage.setItem("color-mode", isLight + "");
+  });
 
   var noop = {value: function() {}};
 
@@ -1120,8 +1123,8 @@
   var event = null;
 
   if (typeof document !== "undefined") {
-    var element = document.documentElement;
-    if (!("onmouseenter" in element)) {
+    var element$1 = document.documentElement;
+    if (!("onmouseenter" in element$1)) {
       filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
     }
   }
@@ -4151,6 +4154,21 @@
   function createGraph (_ref) {
     var wrapper = _ref.wrapper;
     var svg = create("svg").attr("viewBox", "0, 0, " + width + ", " + height);
+    var percentage = 1;
+    var range = document.createElement("input");
+    range.type = "range";
+    range.min = 0;
+    range.max = 100;
+
+    var updatePercentage = function updatePercentage(val) {};
+
+    range.addEventListener("input", function () {
+      percentage = parseInt(range.value) / 100;
+      console.log(percentage);
+      updatePercentage(percentage);
+    });
+    range.value = "100";
+    wrapper.appendChild(range);
     var s = svg.node();
     wrapper.appendChild(s);
     var labelsHidden = false;
@@ -4163,49 +4181,75 @@
       }
     });
     var simulation;
+
+    var clone = function clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    };
+
+    var show = function show(graph) {
+      var clonedGraph = clone(graph);
+
+      var _calculateDistanceToR = calculateDistanceToRoot(clonedGraph.nodes, clonedGraph.edges),
+          edges = _calculateDistanceToR.edges,
+          nodes = _calculateDistanceToR.nodes;
+
+      var maxDistance = nodes.reduce(function (a, b) {
+        return a > b.dtr ? a : b.dtr;
+      }, 0);
+      s.innerHTML = "";
+      var maxDepth = nodes.map(function (n) {
+        return n.depth;
+      }).reduce(function (a, b) {
+        return a > b ? a : b;
+      }, 0);
+      simulation = forceSimulation(nodes).force("link", forceLink(edges).id(function (d) {
+        return d.id;
+      }).distance(70).strength(1)).force("charge", forceManyBody().strength(-20)).force("center", forceCenter(width / 2, height / 2));
+      var link = svg.append("g").attr("stroke", "#999").attr("stroke-opacity", 0.6).selectAll("line").data(edges).join("line").attr("stroke-width", function (d) {
+        return Math.sqrt(d.weight) * 2;
+      });
+      var node = svg.append("g").attr("class", "nodes").selectAll("g").data(nodes).enter().append("g");
+      var circles = node.append("circle").attr("r", function (d) {
+        return 5 + (maxDepth - d.depth) * 3;
+      }).attr("fill", function (d) {
+        return color$1(d.depth);
+      }).call(_drag(simulation));
+      var lables = node.append("text").text(function (d) {
+        return d.id;
+      }).attr("x", 6).attr("y", 3);
+      node.append("title").text(function (d) {
+        return d.id;
+      });
+
+      updatePercentage = function updatePercentage(perc) {
+        node.attr("visibility", function (d) {
+          return d.dtr > maxDistance * perc ? "hidden" : "";
+        });
+        link.attr("visibility", function (_ref3) {
+          var target = _ref3.target,
+              source = _ref3.source;
+          return target.dtr > maxDistance * perc || source.dtr > maxDistance * perc ? "hidden" : "";
+        });
+      };
+
+      simulation.on("tick", function () {
+        link.attr("x1", function (d) {
+          return d.source.x;
+        }).attr("y1", function (d) {
+          return d.source.y;
+        }).attr("x2", function (d) {
+          return d.target.x;
+        }).attr("y2", function (d) {
+          return d.target.y;
+        });
+        node.attr("transform", function (d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+      });
+    };
+
     return {
-      show: function show(graph) {
-        var edges = graph.edges,
-            nodes = graph.nodes;
-        s.innerHTML = "";
-        var maxDepth = nodes.map(function (n) {
-          return n.depth;
-        }).reduce(function (a, b) {
-          return a > b ? a : b;
-        }, 0);
-        simulation = forceSimulation(nodes).force("link", forceLink(edges).id(function (d) {
-          return d.id;
-        }).distance(70).strength(1)).force("charge", forceManyBody().strength(-20)).force("center", forceCenter(width / 2, height / 2));
-        var link = svg.append("g").attr("stroke", "#999").attr("stroke-opacity", 0.6).selectAll("line").data(edges).join("line").attr("stroke-width", function (d) {
-          return Math.sqrt(d.weight) * 2;
-        });
-        var node = svg.append("g").attr("class", "nodes").selectAll("g").data(graph.nodes).enter().append("g");
-        var circles = node.append("circle").attr("r", function (d) {
-          return 5 + (maxDepth - d.depth) * 3;
-        }).attr("fill", function (d) {
-          return color$1(d.depth);
-        }).call(_drag(simulation));
-        var lables = node.append("text").text(function (d) {
-          return d.id;
-        }).attr("x", 6).attr("y", 3);
-        node.append("title").text(function (d) {
-          return d.id;
-        });
-        simulation.on("tick", function () {
-          link.attr("x1", function (d) {
-            return d.source.x;
-          }).attr("y1", function (d) {
-            return d.source.y;
-          }).attr("x2", function (d) {
-            return d.target.x;
-          }).attr("y2", function (d) {
-            return d.target.y;
-          });
-          node.attr("transform", function (d) {
-            return "translate(" + d.x + "," + d.y + ")";
-          });
-        });
-      },
+      show: show,
       stop: function stop() {
         simulation && simulation.stop();
       }
@@ -4579,7 +4623,10 @@
     var _int;
 
     state.on("state", function (state) {
-      e.body.className = "state-" + state;
+      Array.prototype.slice.call(e.body.classList).forEach(function (c) {
+        if (c.includes("state-")) e.body.classList.remove(c);
+      });
+      e.body.classList.add("state-" + state);
       if (_int) clearTimeout(_int);
 
       if (state === "creating") {

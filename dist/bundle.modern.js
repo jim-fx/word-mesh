@@ -56,6 +56,7 @@ function createState(initialState = "initial") {
       emit("state.out." + state, {});
       emit("state", nextState);
       emit("state." + nextState, value);
+      state = nextState;
     }
   };
 }
@@ -156,9 +157,7 @@ const handleSingleNode = (nodeStore, edgeStore, rootNode) => new Promise((resolv
 });
 
 const BATCH_SIZE = 5;
-const MAX_AMOUNT = 150;
-const FILTER_PERCENTAGE = 0.5;
-
+const MAX_AMOUNT = 200;
 function walkGraph(nodes, edges) {
   return nodes.sort((a, b) => a.depth > b.depth ? 1 : -1).map(n => {
     return edges.filter(e => e.target === n.id).map(e => {
@@ -170,10 +169,8 @@ function walkGraph(nodes, edges) {
     });
   }).flat();
 }
-
-const finalFilter = (nodes, edges) => {
+const calculateDistanceToRoot = (nodes, edges) => {
   const maxWeight = edges.reduce((a, b) => a > b.weight ? a : b.weight, 0);
-  let maxDistance = 0;
   const rootNode = nodes.find(n => n.depth === 0);
   rootNode.dtr = 0;
   console.log("filtering " + nodes.length + " nodes"); // Calculate the distance to the root node, while taking
@@ -184,35 +181,21 @@ const finalFilter = (nodes, edges) => {
     node,
     edge
   }) => {
-    console.log(node.depth, parent, node, edge);
-
     if (!parent) {
       //RootNode
       node.dtr = 0;
     } else {
       //We need to inverse the weight
       const distanceToRoot = (parent.dtr || 0) + node.depth + (maxWeight - edge.weight);
-      maxDistance = Math.max(maxDistance, distanceToRoot);
       node.dtr = (node.dtr || 0) + distanceToRoot;
     }
   });
-  console.log("max distance to root " + maxDistance); //Remove a certain percentage of nodes
-
-  const filteredNodes = nodes.sort((a, b) => a.dtr > b.dtr ? 1 : -1).slice(0, Math.floor(nodes.length * FILTER_PERCENTAGE));
-  const nodeIds = {};
-  filteredNodes.forEach(n => {
-    nodeIds[n.id] = true;
-  });
-  console.log("filtered out " + (nodes.length - filteredNodes.length) + " nodes"); //Filter out all edges which connect to removed nodes;
-
-  const filteredEdges = edges.filter(e => e.source in nodeIds && e.target in nodeIds);
   return {
-    nodes: filteredNodes,
-    edges: filteredEdges
+    edges,
+    nodes
   };
 };
-
-var crawl = ((term, log = () => {}) => new Promise((resolve, reject) => {
+const crawl = (term, log = () => {}) => new Promise((resolve, reject) => {
   const nodeStore = NodeStore();
   const edgeStore = EdgeStore();
   const queue = [nodeStore.add(term)];
@@ -228,21 +211,17 @@ var crawl = ((term, log = () => {}) => new Promise((resolve, reject) => {
       if (queue.length && nodeStore.size() < MAX_AMOUNT) {
         workQueue();
       } else {
-        const {
-          nodes,
-          edges
-        } = finalFilter(nodeStore.get(), edgeStore.get());
         resolve({
           term,
-          nodes,
-          edges
+          nodes: nodeStore.get(),
+          edges: edgeStore.get()
         });
       }
     }).catch(reject);
   }
 
   workQueue();
-}));
+});
 
 function loading () {
   const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -268,6 +247,33 @@ function loading () {
     remove
   };
 }
+
+const element = document.getElementById("toggle");
+let isLight = false;
+
+const setMode = light => {
+  isLight = light;
+  document.body.classList[light ? "add" : "remove"]("mode-light");
+  document.body.classList[light ? "remove" : "add"]("mode-dark");
+  element.classList[light ? "add" : "remove"]("is-light");
+};
+
+if ("color-mode" in localStorage) {
+  setMode(localStorage.getItem("color-mode") === "true");
+} else {
+  if (window.matchMedia) {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setMode(false);
+    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+      setMode(true);
+    }
+  }
+}
+
+element.addEventListener("click", () => {
+  setMode(!isLight);
+  localStorage.setItem("color-mode", isLight + "");
+});
 
 var noop = {value: function() {}};
 
@@ -1038,8 +1044,8 @@ var filterEvents = {};
 var event = null;
 
 if (typeof document !== "undefined") {
-  var element = document.documentElement;
-  if (!("onmouseenter" in element)) {
+  var element$1 = document.documentElement;
+  if (!("onmouseenter" in element$1)) {
     filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
   }
 }
@@ -4071,6 +4077,21 @@ function createGraph ({
   wrapper
 }) {
   const svg = create("svg").attr("viewBox", `0, 0, ${width}, ${height}`);
+  let percentage = 1;
+  const range = document.createElement("input");
+  range.type = "range";
+  range.min = 0;
+  range.max = 100;
+
+  let updatePercentage = val => {};
+
+  range.addEventListener("input", () => {
+    percentage = parseInt(range.value) / 100;
+    console.log(percentage);
+    updatePercentage(percentage);
+  });
+  range.value = "100";
+  wrapper.appendChild(range);
   const s = svg.node();
   wrapper.appendChild(s);
   let labelsHidden = false;
@@ -4083,33 +4104,49 @@ function createGraph ({
     }
   });
   let simulation;
-  return {
-    show: graph => {
-      const {
-        edges,
-        nodes
-      } = graph;
-      s.innerHTML = "";
-      const maxDepth = nodes.map(n => n.depth).reduce((a, b) => a > b ? a : b, 0);
-      simulation = forceSimulation(nodes).force("link", forceLink(edges).id(d => d.id).distance(70).strength(1)).force("charge", forceManyBody().strength(-20)).force("center", forceCenter(width / 2, height / 2));
-      const link = svg.append("g").attr("stroke", "#999").attr("stroke-opacity", 0.6).selectAll("line").data(edges).join("line").attr("stroke-width", d => Math.sqrt(d.weight) * 2);
-      var node = svg.append("g").attr("class", "nodes").selectAll("g").data(graph.nodes).enter().append("g");
-      var circles = node.append("circle").attr("r", function (d) {
-        return 5 + (maxDepth - d.depth) * 3;
-      }).attr("fill", function (d) {
-        return color$1(d.depth);
-      }).call(_drag(simulation));
-      var lables = node.append("text").text(function (d) {
-        return d.id;
-      }).attr("x", 6).attr("y", 3);
-      node.append("title").text(d => d.id);
-      simulation.on("tick", () => {
-        link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
-        node.attr("transform", function (d) {
-          return "translate(" + d.x + "," + d.y + ")";
-        });
+
+  const clone = obj => JSON.parse(JSON.stringify(obj));
+
+  const show = graph => {
+    const clonedGraph = clone(graph);
+    const {
+      edges,
+      nodes
+    } = calculateDistanceToRoot(clonedGraph.nodes, clonedGraph.edges);
+    const maxDistance = nodes.reduce((a, b) => a > b.dtr ? a : b.dtr, 0);
+    s.innerHTML = "";
+    const maxDepth = nodes.map(n => n.depth).reduce((a, b) => a > b ? a : b, 0);
+    simulation = forceSimulation(nodes).force("link", forceLink(edges).id(d => d.id).distance(70).strength(1)).force("charge", forceManyBody().strength(-20)).force("center", forceCenter(width / 2, height / 2));
+    const link = svg.append("g").attr("stroke", "#999").attr("stroke-opacity", 0.6).selectAll("line").data(edges).join("line").attr("stroke-width", d => Math.sqrt(d.weight) * 2);
+    var node = svg.append("g").attr("class", "nodes").selectAll("g").data(nodes).enter().append("g");
+    var circles = node.append("circle").attr("r", function (d) {
+      return 5 + (maxDepth - d.depth) * 3;
+    }).attr("fill", function (d) {
+      return color$1(d.depth);
+    }).call(_drag(simulation));
+    var lables = node.append("text").text(function (d) {
+      return d.id;
+    }).attr("x", 6).attr("y", 3);
+    node.append("title").text(d => d.id);
+
+    updatePercentage = perc => {
+      node.attr("visibility", d => d.dtr > maxDistance * perc ? "hidden" : "");
+      link.attr("visibility", ({
+        target,
+        source
+      }) => target.dtr > maxDistance * perc || source.dtr > maxDistance * perc ? "hidden" : "");
+    };
+
+    simulation.on("tick", () => {
+      link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+      node.attr("transform", function (d) {
+        return "translate(" + d.x + "," + d.y + ")";
       });
-    },
+    });
+  };
+
+  return {
+    show,
     stop: () => {
       simulation && simulation.stop();
     }
@@ -4477,7 +4514,10 @@ function createView (state) {
   });
   let int;
   state.on("state", state => {
-    e.body.className = `state-${state}`;
+    Array.prototype.slice.call(e.body.classList).forEach(c => {
+      if (c.includes("state-")) e.body.classList.remove(c);
+    });
+    e.body.classList.add(`state-${state}`);
     if (int) clearTimeout(int);
 
     if (state === "creating") {
