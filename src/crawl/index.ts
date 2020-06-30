@@ -121,10 +121,9 @@ const handleSingleNode = (nodeStore, edgeStore, rootNode): Promise<Node[]> =>
   });
 
 const BATCH_SIZE = 5;
-const MAX_AMOUNT = 150;
-const FILTER_PERCENTAGE = 0.5;
+const MAX_AMOUNT = 200;
 
-function walkGraph(nodes: Node[], edges: Edge[]) {
+export function walkGraph(nodes: Node[], edges: Edge[]) {
   return nodes
     .sort((a, b) => (a.depth > b.depth ? 1 : -1))
     .map((n) => {
@@ -141,7 +140,7 @@ function walkGraph(nodes: Node[], edges: Edge[]) {
     .flat();
 }
 
-const finalFilter = (nodes: Node[], edges: Edge[]) => {
+export const calculateDistanceToRoot = (nodes: Node[], edges: Edge[]) => {
   const maxWeight = edges.reduce((a, b) => (a > b.weight ? a : b.weight), 0);
 
   let maxDistance = 0;
@@ -153,7 +152,6 @@ const finalFilter = (nodes: Node[], edges: Edge[]) => {
   // Calculate the distance to the root node, while taking
   // the weight of the single connections into account
   walkGraph(nodes, edges).forEach(({ parent, node, edge }) => {
-    console.log(node.depth, parent, node, edge);
     if (!parent) {
       //RootNode
       node.dtr = 0;
@@ -167,12 +165,23 @@ const finalFilter = (nodes: Node[], edges: Edge[]) => {
     }
   });
 
+  return {
+    edges,
+    nodes,
+  };
+};
+
+export const filterByDistance = (
+  nodes: Node[],
+  edges: Edge[],
+  percentage: number
+) => {
+  const maxDistance = nodes.reduce((a, b) => (a > b.dtr ? a : b.dtr), 0);
+
   console.log("max distance to root " + maxDistance);
 
   //Remove a certain percentage of nodes
-  const filteredNodes = nodes
-    .sort((a, b) => (a.dtr > b.dtr ? 1 : -1))
-    .slice(0, Math.floor(nodes.length * FILTER_PERCENTAGE));
+  const filteredNodes = nodes.filter((n) => n.dtr <= maxDistance * percentage);
 
   const nodeIds = {};
   filteredNodes.forEach((n) => {
@@ -191,7 +200,7 @@ const finalFilter = (nodes: Node[], edges: Edge[]) => {
   return { nodes: filteredNodes, edges: filteredEdges };
 };
 
-export default (
+export const crawl = (
   term: string,
   log: (s: string, m: number, c: number) => void = () => {}
 ): Promise<CrawlResult> =>
@@ -220,15 +229,10 @@ export default (
           if (queue.length && nodeStore.size() < MAX_AMOUNT) {
             workQueue();
           } else {
-            const { nodes, edges } = finalFilter(
-              nodeStore.get(),
-              edgeStore.get()
-            );
-
             resolve({
               term,
-              nodes,
-              edges,
+              nodes: nodeStore.get(),
+              edges: edgeStore.get(),
             });
           }
         })

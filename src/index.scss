@@ -58,8 +58,8 @@ body.mode-dark {
 
 #action-list {
   position: absolute;
-  bottom: 130px;
-  left: 10px;
+  bottom: 120px;
+  left: -10px;
 }
 
 #action-list > .square {
@@ -194,6 +194,17 @@ section {
   > svg {
     position: absolute;
   }
+  > input {
+    position: absolute;
+    display: none;
+    left: 50vw;
+    top: 10px;
+    transform: translateX(-50%);
+  }
+}
+
+.state-viewSingle > #single > input {
+  display: block;
 }
 
 #input-form::after {

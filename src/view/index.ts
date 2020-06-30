@@ -1,7 +1,7 @@
 import "../@types";
 import e from "./elements";
 
-import crawl from "../crawl";
+import { crawl } from "../crawl";
 import loading from "./loading";
 import "./toggle";
 
