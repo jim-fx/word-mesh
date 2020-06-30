@@ -5,10 +5,10 @@
   top: 5px;
   left: 5px;
 
-  height: 30px;
-  width: 30px;
+  height: 20px;
+  width: 20px;
 
-  border-radius: 15px;
+  border-radius: 50%;
 
   background: linear-gradient(45deg, #fff100, red);
 
@@ -23,10 +23,10 @@
   top: 0;
   right: 0;
 
-  width: 20px;
-  height: 20px;
+  width: 66%;
+  height: 66%;
 
-  transform-origin: 15px 5px;
+  transform-origin: 66% 33%;
 
   transform: scale(0);
   background-color: white;
