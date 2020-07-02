@@ -1,7 +1,12 @@
 :root {
-  --bg-dark: #16171c;
-  --bg-light: #3b3e4b62;
-  --text-color: #ddd;
+  --dark-bg-dark: #16171c;
+  --dark-bg-light: #3b3e4b62;
+  --dark-text-color: #ddd;
+
+  --light-bg-dark: white;
+  --light-bg-light: rgba(148, 148, 148, 0.95);
+  --light-text-color: #252525;
+
   background-color: var(--bg-dark);
 }
 
@@ -15,6 +20,8 @@ body {
   background-repeat: no-repeat;
   background-color: var(--bg-dark);
   background: linear-gradient(150deg, var(--bg-dark), var(--bg-light));
+
+  transition: all 1s ease;
 }
 
 .bg {
@@ -22,22 +29,37 @@ body {
   color: var(--text-color);
 }
 .bg-gradient {
-  color: #ddd;
+  color: var(--text-color);
   background: linear-gradient(150deg, var(--bg-dark), var(--bg-light));
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    --bg-dark: #e2e2e2;
-    --bg-light: rgba(148, 148, 148, 0.95);
-    --text-color: #252525;
+  body {
+    --bg-dark: var(--dark-bg-dark);
+    --bg-light: var(--dark-bg-light);
+    --text-color: var(--dark-text-color);
   }
+}
+
+body.mode-light {
+  background-color: white;
+
+  --bg-dark: var(--light-bg-dark);
+  --bg-light: var(--light-bg-dark);
+  --text-color: var(--light-text-color);
+}
+
+body.mode-dark {
+  background-color: black;
+  --bg-dark: var(--dark-bg-dark);
+  --bg-light: var(--dark-bg-light);
+  --text-color: var(--dark-text-color);
 }
 
 #action-list {
   position: absolute;
-  bottom: 130px;
-  left: 10px;
+  bottom: 120px;
+  left: -10px;
 }
 
 #action-list > .square {
@@ -172,6 +194,17 @@ section {
   > svg {
     position: absolute;
   }
+  > input {
+    position: absolute;
+    display: none;
+    left: 50vw;
+    top: 10px;
+    transform: translateX(-50%);
+  }
+}
+
+.state-viewSingle > #single > input {
+  display: block;
 }
 
 #input-form::after {
@@ -237,4 +270,17 @@ section {
       fill: var(--bg-dark);
     }
   }
+}
+
+#single.labels-hidden {
+  svg text {
+    display: none;
+  }
+}
+
+#single > p {
+  color: var(--text-color);
+  text-align: right;
+  margin: 0;
+  padding: 10px;
 }

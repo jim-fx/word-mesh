@@ -1,6 +1,6 @@
 import "./index.scss";
 
-import crawl from "./crawl";
+import { crawl } from "./crawl";
 import createState from "./state";
 import createView from "./view";
 

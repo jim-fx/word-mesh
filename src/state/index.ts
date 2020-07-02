@@ -26,6 +26,7 @@ export default function createState<T>(
       emit("state.out." + state, {});
       emit("state", nextState);
       emit("state." + nextState, value);
+      state = nextState;
     },
   };
 }
