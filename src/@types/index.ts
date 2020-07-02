@@ -15,9 +15,3 @@ interface State<T> {
   on(event: string, cb);
   set(state: string, value?: any);
 }
-
-type Await<T> = T extends {
-  then(onfulfilled?: (value: infer U) => unknown): unknown;
-}
-  ? U
-  : T;
