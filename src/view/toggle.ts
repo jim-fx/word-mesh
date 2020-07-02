@@ -1,10 +1,13 @@
 import "./toggle.scss";
 const element = document.getElementById("toggle");
+const favicon = document.getElementById("favicon");
 
 let isLight = false;
+let ogUrl = favicon.getAttribute("href");
 
 const setMode = (light: boolean) => {
   isLight = light;
+  favicon.setAttribute("href", isLight ? "false" : ogUrl);
   document.body.classList[light ? "add" : "remove"]("mode-light");
   document.body.classList[light ? "remove" : "add"]("mode-dark");
   element.classList[light ? "add" : "remove"]("is-light");
