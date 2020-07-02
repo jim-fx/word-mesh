@@ -15,3 +15,17 @@ interface State<T> {
   on(event: string, cb);
   set(state: string, value?: any);
 }
+
+type Await<T> = T extends {
+  then(onfulfilled?: (value: infer U) => unknown): unknown;
+}
+  ? U
+  : T;
+
+declare interface PromiseConstructor {
+  allSettled(
+    promises: Array<Promise<any>>
+  ): Promise<
+    Array<{ status: "fulfilled" | "rejected"; value?: any; reason?: any }>
+  >;
+}

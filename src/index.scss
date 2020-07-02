@@ -3,11 +3,13 @@
   --dark-bg-light: #3b3e4b62;
   --dark-text-color: #ddd;
 
-  --light-bg-dark: white;
-  --light-bg-light: rgba(148, 148, 148, 0.95);
+  --light-bg-dark: #ece1e1;
+  --light-bg-light: #867575f2;
   --light-text-color: #252525;
 
   background-color: var(--bg-dark);
+
+  transition: all 0.3s ease;
 }
 
 body {
@@ -24,10 +26,6 @@ body {
   transition: all 1s ease;
 }
 
-.bg {
-  background: var(--bg-dark);
-  color: var(--text-color);
-}
 .bg-gradient {
   color: var(--text-color);
   background: linear-gradient(150deg, var(--bg-dark), var(--bg-light));
@@ -47,6 +45,10 @@ body.mode-light {
   --bg-dark: var(--light-bg-dark);
   --bg-light: var(--light-bg-dark);
   --text-color: var(--light-text-color);
+
+  .bg-gradient {
+    background: linear-gradient(150deg, var(--bg-dark), gray);
+  }
 }
 
 body.mode-dark {
@@ -90,7 +92,7 @@ body.mode-dark {
   z-index: 0;
 }
 
-.shadow--offset::before {
+.shadow--offset::after {
   content: "";
   position: absolute;
   top: 0;
@@ -102,8 +104,7 @@ body.mode-dark {
   background: linear-gradient(150deg, var(--bg-dark), rgba(59, 62, 75, 0.6));
   /* lighten */
 
-  box-shadow: -15px -15px 70px rgba(0, 0, 0, 0.25),
-    10px 14px 21px rgba(201, 201, 201, 0.02),
+  box-shadow: -15px -15px 70px rgba(0, 0, 0, 0.25), 10px 14px 21px rgba(201, 201, 201, 0.02),
     inset 0px 0px 86px rgba(255, 255, 255, 0.04);
 
   z-index: -1;
@@ -111,7 +112,7 @@ body.mode-dark {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-.shadow--hover:hover::before {
+.shadow--hover:hover::after {
   transform: scale(0.8);
   opacity: 0.8;
 }
@@ -265,6 +266,7 @@ section {
 }
 
 #action-list {
+  z-index: 2;
   svg {
     * {
       fill: var(--bg-dark);
