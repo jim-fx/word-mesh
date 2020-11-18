@@ -1,0 +1,19 @@
+name: default
+kind: pipeline
+
+steps:
+  - name: build
+    image: node
+    commands:
+      - npm install
+      - npm build
+  - name: deploy
+    image: jimfx/sftp
+    environment:
+      FTP_USERNAME:
+        from_secret: FTP_USERNAME
+      FTP_PASSWORD:
+        from_secret: FTP_PASSWORD
+      PLUGIN_HOSTNAME: jim-fx.com:2221
+      PLUGIN_DEST_DIR: /share/mesh
+      PLUGIN_SRC_DIR: /drone/src/build
