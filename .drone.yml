@@ -2,11 +2,38 @@ name: default
 kind: pipeline
 
 steps:
-  - name: build
+  - name: load-yarn-cache
+    image: sinlead/drone-cache:1.0.0
+    settings:
+      action: load
+      key: yarn.lock
+      mount: node_modules
+      prefix: yarn-modules-v1
+    volumes:
+      - name: cache
+        path: /cache
+
+  - name: yarn-install
     image: node:alpine
     commands:
       - yarn install
+
+  - name: save-yarn-cache
+    image: sinlead/drone-cache:1.0.0
+    settings:
+      action: save
+      key: yarn.lock
+      mount: node_modules
+      prefix: yarn-modules-v1
+    volumes:
+      - name: cache
+        path: /cache
+
+  - name: build
+    image: node:alpine
+    commands:
       - yarn build
+
   - name: deploy
     image: jimfx/sftp
     environment:
@@ -17,3 +44,8 @@ steps:
       PLUGIN_HOSTNAME: jim-fx.com:2221
       PLUGIN_DEST_DIR: /share/mesh
       PLUGIN_SRC_DIR: /drone/src/public
+
+volumes:
+  - name: cache
+    host:
+      path: /tmp/cache
