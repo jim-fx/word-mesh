@@ -16,4 +16,4 @@ steps:
         from_secret: FTP_PASSWORD
       PLUGIN_HOSTNAME: jim-fx.com:2221
       PLUGIN_DEST_DIR: /share/mesh
-      PLUGIN_SRC_DIR: /drone/src/build
+      PLUGIN_SRC_DIR: /drone/src/public
