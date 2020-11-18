@@ -3,7 +3,7 @@ kind: pipeline
 
 steps:
   - name: build
-    image: node
+    image: node:alpine
     commands:
       - npm install
       - npm build
