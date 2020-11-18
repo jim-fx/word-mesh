@@ -5,8 +5,8 @@ steps:
   - name: build
     image: node:alpine
     commands:
-      - npm install
-      - npm build
+      - yarn install
+      - yarn build
   - name: deploy
     image: jimfx/sftp
     environment:
