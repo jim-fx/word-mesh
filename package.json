@@ -1,14 +1,10 @@
 {
   "name": "word-net",
-  "source": "src/index.ts",
-  "main": "public/dist/bundle.js",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "run-p serve watch",
-    "serve": "live-server public",
-    "build": "microbundle build --external none --css-modules=false --no-compress",
-    "watch": "microbundle watch --external none --css-modules=false --no-compress"
+    "build": "parcel build src/index.html --out-dir public",
+    "dev": "parcel src/index.html --out-dir public"
   },
   "dependencies": {
     "d3": "^6.7.0",

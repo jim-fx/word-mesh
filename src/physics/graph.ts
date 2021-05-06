@@ -12,7 +12,7 @@ import {
   schemeCategory10,
 } from "d3";
 
-import { filterByDistance, calculateDistanceToRoot } from "../crawl";
+import { filterByDistanceToRoot, calculateDistanceToRoot } from "../graph";
 
 const { innerWidth: width, innerHeight: height } = window;
 
@@ -58,7 +58,6 @@ export default function ({ wrapper }: { wrapper: HTMLElement }) {
   let updatePercentage = (val) => {};
   range.addEventListener("input", () => {
     percentage = parseInt(range.value) / 100;
-    console.log(percentage);
     updatePercentage(percentage);
   });
   range.value = "100";
@@ -82,10 +81,7 @@ export default function ({ wrapper }: { wrapper: HTMLElement }) {
   const show = (graph) => {
     const clonedGraph = clone(graph);
 
-    const { edges, nodes } = calculateDistanceToRoot(
-      clonedGraph.nodes,
-      clonedGraph.edges
-    );
+    const { edges, nodes } = calculateDistanceToRoot(clonedGraph);
 
     const maxDistance = nodes.reduce((a, b) => (a > b.dtr ? a : b.dtr), 0);
 
@@ -138,19 +134,19 @@ export default function ({ wrapper }: { wrapper: HTMLElement }) {
       .text(function (d) {
         return d.id;
       })
-      .attr("x", 6)
-      .attr("y", 3);
+      .attr("x", 0)
+      .attr("y", (d) => {
+        return 5 + (maxDepth - d.depth) * 3 + 10;
+      });
 
     node.append("title").text((d) => d.id);
 
     updatePercentage = (perc) => {
-      node.attr("visibility", (d) =>
-        d.dtr > maxDistance * perc ? "hidden" : ""
-      );
-      link.attr("visibility", ({ target, source }) =>
-        target.dtr > maxDistance * perc || source.dtr > maxDistance * perc
-          ? "hidden"
-          : ""
+      const max = maxDepth * perc;
+      console.log(max);
+      node.attr("class", (d) => (d.depth > max ? "n-hidden" : ""));
+      link.attr("class", ({ target, source }) =>
+        target.depth > max || source.depth > max ? "n-hidden" : ""
       );
     };
 

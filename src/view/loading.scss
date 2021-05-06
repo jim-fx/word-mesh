@@ -7,7 +7,7 @@
   overflow: visible;
 
   > circle {
-    stroke: white;
+    stroke: var(--text-color);
     stroke-width: 5px;
     stroke-dasharray: 360px;
     stroke-dashoffset: -315px;
